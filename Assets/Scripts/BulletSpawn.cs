@@ -6,7 +6,7 @@ public class BulletSpawn : MonoBehaviour {
 	public float bulletRate;
 	private TurretControl _turretControl;
 	// Use this for initialization
-	void Start () {
+	void OnEnable () {
 		bullet.CreatePool(10);
 		InvokeRepeating("LaunchProjectile", 3, bulletRate);
 		_turretControl = GetComponentInParent<TurretControl>();
@@ -18,4 +18,9 @@ public class BulletSpawn : MonoBehaviour {
 		instance.initialize(transform.parent.localScale.x, _turretControl.dimensionSliderValue.Remap (0,1,5,3), _turretControl.turretColor);
 		Physics.IgnoreCollision(instance.collider, transform.parent.collider);
 	}
+
+	void OnDisable() {
+		CancelInvoke("LaunchProjectile");
+	}
+			
 }

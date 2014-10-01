@@ -28,17 +28,22 @@ public class TurretControl : MonoBehaviour {
 
 	private int _baseKnob=16;
 	private int _baseSlider=0;
-	private int _baseButton1 = 32;
+	private int _baseButton1 = 64;
 	private int _baseButton2 = 48;
-	private int _baseButton3 = 64;
+	private int _baseButton3 = 32;
+
+	private int _lives = 2;
 
 	private MeshRenderer _turretMesh;
 
-	void Start()
+	private int[] _buttonValues = new int[] {1,1,1};
+
+
+	void OnEnable()
 	{
 		_turretMesh = GetComponentInChildren<MeshRenderer>();
 		_turretMesh.renderer.material.color = turretColor;
-		ButtonsOn();
+		_lives = 2;
 	}
 
 	// Update is called once per frame
@@ -47,17 +52,40 @@ public class TurretControl : MonoBehaviour {
 		float scale = dimensionSliderValue.Remap(0,1,0.5f,1);
 		transform.localScale = Vector3.one*scale;
 
+		//set lives button if they have changed last frame
+		//NOTE: for some reason Midi control change doesn't work in a one-time method it needs to be constantly updated.
+
+		for (int i=0; i<energyButtonsId.Length; i++) {
+			MidiOut.SendControlChange(MidiChannel.Ch1, energyButtonsId[i], _buttonValues[i]);
+		}
+	}
+
+
+	void OnCollisionEnter (Collision collision) {
+		if (collision.collider.tag=="Bullet")
+		{
+			_buttonValues[_lives] = 0;
+			_lives --;
+			if (_lives<0) {
+				StartCoroutine(Death());
+			}
+		}
 	}
 
 	public void ButtonsOff() {
-		foreach (int button in energyButtonsId) {
-			MidiOut.SendControlChange(MidiChannel.Ch1, button, 0);
+		for (int i=0; i<energyButtonsId.Length; i++) {
+			_buttonValues[i]=0;
 		}
 	}
 
 	public void ButtonsOn() {
-		foreach (int button in energyButtonsId) {
-			MidiOut.SendControlChange(MidiChannel.Ch1, button, 1);
+		for (int i=0; i<energyButtonsId.Length; i++) {
+			_buttonValues[i]=1;
 		}
+	}
+
+	IEnumerator Death () {
+		yield return 0;
+		this.gameObject.SetActive(false);
 	}
 }

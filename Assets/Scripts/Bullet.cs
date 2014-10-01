@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class Bullet : MonoBehaviour {
-
+	public ExplosionManager explosion;
 	private Transform _bulletBody;
 	// Use this for initialization
 	void OnEnable () {
@@ -14,17 +14,25 @@ public class Bullet : MonoBehaviour {
 		_bulletBody.renderer.material.color = bulletColor;
 		transform.localScale = Vector3.one*scale;
 		rigidbody.velocity = transform.forward*speed;
-		StartCoroutine(TimeToLive());
+		StartCoroutine(TimeToLive(Random.Range(4.0f*scale, 8.0f*scale)));
+	}
+
+	void Update () {
 	}
 
 	void OnCollisionEnter (Collision collision) {
+		Explode();
+	}
+
+	IEnumerator TimeToLive(float time) {
+		for (float timer=0; timer<= time; timer+=Time.deltaTime) {
+			yield return 0;
+		}
 		this.Recycle();
 	}
 
-	IEnumerator TimeToLive() {
-		for (float timer=0; timer<=15; timer+=Time.deltaTime) {
-			yield return 0;
-		}
+	void Explode() {
+		explosion.ExplodeBullet(transform.position);
 		this.Recycle();
 	}
 }
